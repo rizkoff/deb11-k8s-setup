@@ -1,0 +1,6 @@
+
+
+/etc/hosts /etc/hostname
+
+hostname mst
+apt update  && apt install -y vim git screen

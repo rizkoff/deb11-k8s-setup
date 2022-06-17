@@ -1,0 +1,147 @@
+---
+- hosts: all
+  gather_facts: no
+
+  tasks:
+
+  - name: DBG start_at
+    debug:
+      msg: 'dbg start_at: {{ start_at }}'
+
+  - name: Install tools and prereqs
+    apt: pkg={{ item }}  state=present
+    with_items: '{{ pkg_prereqs }}'
+    when: start_at <= 1001
+
+  - name: Prepare trust docker.com gpg signature
+    ansible.builtin.shell:
+      cmd: curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o - > {{ docker_signature_file }}
+    when: start_at <= 1002
+
+  - name: Prepare docker apt sources list
+    ansible.builtin.shell:
+      cmd: echo "deb [arch=$(dpkg --print-architecture) signed-by={{ docker_signature_file }}] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    when: start_at <= 1003
+
+  - name: apt update
+    apt: update_cache=yes
+    when: start_at <= 1004
+
+  - name: install docker
+    apt: pkg={{ item }} state=present allow_downgrade=True
+    with_items:
+    - docker-ce=5:20.10.14~3-0~debian-bullseye
+    - docker-ce-cli=5:20.10.14~3-0~debian-bullseye
+    - containerd.io
+    - apt-transport-https
+    when: start_at <= 1005
+
+  - name: Prepare trust k8s gpg signature
+    ansible.builtin.shell:
+      cmd: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add
+    when: start_at <= 1006
+
+  - name: Prepare k8s apt sources list
+    ansible.builtin.shell:
+      cmd: echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+    when: start_at <= 1007
+
+  - name: apt update
+    apt: update_cache=yes
+    when: start_at <= 1008
+
+  - name: install k8s
+    apt: pkg={{ item }} state=present allow_downgrade=True
+    with_items:
+    - kubelet=1.23.5-00
+    - kubeadm=1.23.5-00
+    - kubectl=1.23.5-00
+    - kubernetes-cni=0.8.7-00
+    when: start_at <= 1009
+
+  - name: set /etc/docker/daemon.json
+    ansible.builtin.copy:
+      src: ./files/etc-docker-daemon.json
+      dest: /etc/docker/daemon.json
+    when: start_at <= 1010
+
+  - name: Restart docker
+    systemd:
+      name: docker
+      daemon_reload: True
+      state: restarted
+    when: start_at <= 1011
+
+  - name: systemctl enable docker
+    ansible.builtin.shell:
+      cmd: systemctl enable docker
+    when: start_at <= 1011
+
+
+- hosts: mst
+  gather_facts: no
+
+  tasks:
+
+  - name: DBG start_at
+    debug:
+      msg: "System {{ inventory_hostname }} has start_at {{ start_at }}"
+
+  - name: init k8s cluster on master
+    ansible.builtin.shell:
+      cmd: kubeadm init --pod-network-cidr=10.244.0.0/16
+    when: start_at <= 1012
+
+  - name: generate join token
+    ansible.builtin.shell: kubeadm token create --print-join-command
+    register: join_cmd
+    when: start_at <= 1013
+
+  - name: init k8s cluster on master
+    lineinfile: dest=/root/.bashrc line='export KUBECONFIG=/etc/kubernetes/admin.conf' state=present
+    when: start_at <= 1014
+
+- hosts: wrk1,wrk2
+  gather_facts: no
+
+  tasks:
+
+  - name: DBG start_at
+    debug:
+      msg: "join stmt: `{{ hostvars['mst']['join_cmd']['stdout_lines'][0] }}`"
+    when: start_at <= 1015
+
+  - name: join worker to k8s cluster
+    ansible.builtin.shell:
+      cmd: sh -c "{{ hostvars['mst']['join_cmd']['stdout_lines'][0] }}"
+    when: start_at <= 1015
+
+
+  - name: Transfer /etc/kubernetes/admin.conf to workers
+    synchronize:
+      src: /etc/kubernetes/admin.conf
+      dest: /etc/kubernetes/admin.conf
+    delegate_to: mst
+    when: start_at <= 1016
+
+- hosts: all
+  gather_facts: no
+
+  tasks:
+
+  - name: flannel install
+    ansible.builtin.shell:
+      cmd: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
+    when: start_at <= 17
+
+  - name: flannel rbac
+    ansible.builtin.shell:
+      cmd: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
+    when: start_at <= 17
+
+
+

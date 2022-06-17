@@ -2,5 +2,37 @@
 
 /etc/hosts /etc/hostname
 
-hostname mst
+hostname mst,wrk1,wrk2
+[mst] 
+apt update  && apt install -y dsh
+/etc/dsh/machines.lst << "mst,wrk1,wrk2"
+
+[all] 
+ssh-keygen -t rsa
 apt update  && apt install -y vim git screen
+cat root@mst:/root/.ssh/id_rsa.pub >> [all]:/root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+
+/etc/ssh/sshd_config << 
+PermitRootLogin yes
+service ssh restart
+
+
+sysctl -w net.ipv4.ip_forward=1
+sysctl -p
+
+swap X /etc/fstab
+swapoff -a
+
+[mst]
+# https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#installing-ansible-on-debian
+echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu focal main" > /etc/apt/sources.list.d/ansible.list
+
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+apt update
+apt install ansible=5.9.0-1ppa~focal -y
+
+ansible-config init -t all --disabled > ./ansible.cfg
+[mst,wrk1,wrk2] >> /etc/ansible/hosts
+ansible all -m ping
+

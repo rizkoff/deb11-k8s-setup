@@ -1,0 +1,19 @@
+---
+start_at: 1016
+docker_signature_file: /usr/share/keyrings/docker-archive-keyring.gpg
+pkg_prereqs:
+  - vim
+  - git
+  - screen
+  - lvm2
+  - net-tools
+  - iputils-ping
+  - curl
+  - netcat
+  - libffi-dev
+  - python3-pip
+  - python3-dev
+  - ca-certificates
+  - gnupg
+  - lsb-release
+  - rsync

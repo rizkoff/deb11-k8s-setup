@@ -1,5 +1,6 @@
 ---
-start_at: 1016
+blank_disk: /dev/sdb
+start_at: 1027
 docker_signature_file: /usr/share/keyrings/docker-archive-keyring.gpg
 pkg_prereqs:
   - vim

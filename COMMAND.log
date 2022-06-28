@@ -36,3 +36,29 @@ ansible-config init -t all --disabled > ./ansible.cfg
 [mst,wrk1,wrk2] >> /etc/ansible/hosts
 ansible all -m ping
 
+# https://kubernetes.github.io/ingress-nginx/deploy/#bare-metal-clusters
+wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/baremetal/deploy.yaml
+kubectl apply -f deploy.yaml
+# https://kubernetes.github.io/ingress-nginx/deploy/baremetal/
+## edit the ingress-nginx Service and add the following field to the object spec
+
+spec:
+  externalIPs:
+  - 203.0.113.1
+  - 203.0.113.2
+  - 203.0.113.3
+# https://kubernetes.github.io/ingress-nginx/deploy/#bare-metal-clusters
+# https://kubernetes.github.io/ingress-nginx/deploy/baremetal/
+wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/baremetal/deploy.yaml
+
+pip3 install kubernetes
+pip3 install docker`
+
+ansible-galaxy collection list | grep docker
+pip3 list | grep docker
+
+
+
+
+
+

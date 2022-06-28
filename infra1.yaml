@@ -1,0 +1,43 @@
+---
+- hosts: mst
+  gather_facts: no
+
+  tasks:
+
+##- name: pull infra images
+##  ansible.builtin.shell:
+##    cmd: docker pull "{{ item }}"
+##  with_items:
+##  - sonatype/nexus3:3.38.1
+##  - jenkins/jenkins:lts-jdk11
+##  - gitlab/gitlab-ce:14.9.3-ce.0
+
+  - name: pull infra images - nexus
+    docker_image:
+      name: sonatype/nexus3:3.38.1
+      source: pull
+      state: present
+    when: start_at <= 1027
+
+  - name: pull infra images - jenkins
+    docker_image:
+      name: jenkins/jenkins:lts-jdk11
+      source: pull
+      state: present
+    when: start_at <= 1027
+
+  - name: pull infra images - gitlab
+    docker_image:
+      name: gitlab/gitlab-ce:14.9.3-ce.0
+      source: pull
+      state: present
+    when: start_at <= 1027
+
+##- name: pull infra images
+##  docker_image:
+##    name: "{{ item }}"
+##    source: pull
+##  with_items:
+##  - sonatype/nexus3:3.38.1
+##  - jenkins/jenkins:lts-jdk11
+##  - gitlab/gitlab-ce:14.9.3-ce.0

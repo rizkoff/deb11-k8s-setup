@@ -1,0 +1,51 @@
+---
+- hosts: all
+  gather_facts: no
+
+  tasks:
+
+  - name: DBG start_at
+    debug:
+      msg: 'dbg start_at: {{ start_at }}'
+
+  - name: LVM add PV
+    ansible.builtin.shell:
+      cmd: pvcreate {{ blank_disk }}
+    when: start_at <= 1018
+
+  - name: LVM add VG
+    ansible.builtin.shell:
+      cmd: vgcreate datavg {{ blank_disk }}
+    when: start_at <= 1019
+
+  - name: LVM add LV
+    ansible.builtin.shell:
+      cmd: lvcreate -n datalv -l 95%FREE datavg
+    when: start_at <= 1020
+
+  - name: mkfs
+    ansible.builtin.shell:
+      cmd: mkfs -t ext4 /dev/datavg/datalv
+    when: start_at <= 1021
+
+  - name: mkdir
+    ansible.builtin.shell:
+      cmd: mkdir /data
+    when: start_at <= 1022
+
+  - name: mount
+    ansible.builtin.shell:
+      cmd: mount /dev/datavg/datalv /data
+    when: start_at <= 1023
+
+  - name: fstab
+    ansible.builtin.shell:
+      cmd: echo '/dev/mapper/datavg-datalv /data ext4 rw,relatime 0 0' >> /etc/fstab
+    when: start_at <= 1024
+
+  - name: exc mount
+    ansible.builtin.shell:
+      cmd: mount -a
+    when: start_at <= 1025
+
+

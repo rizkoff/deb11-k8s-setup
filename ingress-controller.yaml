@@ -1,0 +1,25 @@
+---
+- hosts: mst
+  gather_facts: no
+
+  tasks:
+
+  - name: show pwd
+    ansible.builtin.shell:
+      cmd: pwd
+    register: pwd_out
+    when: start_at <= 1026
+
+  - name: print home_dirs variable
+    ansible.builtin.debug:
+      var: pwd_out
+
+  - name: deploy demo nginx deployment to the cluster.
+    kubernetes.core.k8s:
+      state: present
+     #src: ./files/ingress-controller/deploy.nginx.yaml
+      definition: "{{ lookup('file', './files/ingress-controller/deploy.nginx.yaml') | from_yaml }}"
+   #ansible.builtin.shell:
+   #  cmd: kubectl apply -f ./files/ingress-controller/deploy.nginx.yaml
+    when: start_at <= 1026
+

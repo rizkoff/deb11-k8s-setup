@@ -134,14 +134,14 @@
       cmd: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
     environment:
       KUBECONFIG: /etc/kubernetes/admin.conf
-    when: start_at <= 17
+    when: start_at <= 1017
 
   - name: flannel rbac
     ansible.builtin.shell:
       cmd: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
     environment:
       KUBECONFIG: /etc/kubernetes/admin.conf
-    when: start_at <= 17
+    when: start_at <= 1017
 
 
 

@@ -1,0 +1,21 @@
+---
+- hosts: mst
+  gather_facts: no
+
+  tasks:
+
+  - name: apt update
+    apt: update_cache=yes
+    when: start_at <= 1026
+
+  - name: install unbound
+    apt: pkg={{ item }} state=present allow_downgrade=True
+    with_items:
+    - unbound=1.13.1-1
+    when: start_at <= 1026
+
+  - name: set /etc/unbound/unbound.conf.d/custom.conf
+    ansible.builtin.copy:
+      src: ./files/etc--unbound--unbound.conf.d--custom.conf
+      dest: /etc/unbound/unbound.conf.d/custom.conf
+    when: start_at <= 1026

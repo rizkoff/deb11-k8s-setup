@@ -1,0 +1,36 @@
+---
+
+- hosts: mst
+  gather_facts: no
+  vars:
+    start_at: 3
+
+  tasks:
+
+    #- name: setting facts
+    #set_fact:
+    #start_at = 3 | int
+
+  - name: Register a variable
+    ansible.builtin.shell: cat /etc/motd
+    register: motd_contents
+
+  - name: DBG start_at 1
+    debug:
+      var: motd_contents.stdout_lines
+      #msg: 'dbg start_at: {{start_at}}'
+
+
+
+
+- hosts: wrk1,wrk2
+  gather_facts: no
+
+  tasks:
+
+  - name: DBG start_at mst
+    debug:
+      msg: "System {{ inventory_hostname }} reads {{ hostvars['mst']['motd_contents']['stdout_lines']  }}"
+
+
+

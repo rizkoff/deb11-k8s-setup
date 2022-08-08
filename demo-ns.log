@@ -1,0 +1,5 @@
+kubectl create ns demo-ns
+
+
+
+kubectl create deployment -n demo-ns nginx --image=nginx
